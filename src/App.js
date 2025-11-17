@@ -6,6 +6,7 @@ import AppShell from "./components/AppShell";
 import ReportsPage from "./pages/ReportsPage";
 import Dashboard from "./pages/Dashboard";
 import TransactionsPage from "./pages/TransactionsPage";
+
 import "./App.css";
 
 
@@ -26,6 +27,7 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Navigate to="/products" />} />
                 <Route path="/products" element={<ProductsPage/>} />
+                
                 <Route path="/products/new" element={<ProductFormPage/>} />
                 <Route path="/products/:id" element={<ProductFormPage/>} />
                 <Route path="/dashboard" element={<Dashboard/>} />

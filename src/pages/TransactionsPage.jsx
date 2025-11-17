@@ -1,57 +1,130 @@
 import React, { useEffect, useState } from "react";
 import api from "../api";
 
-export default function TransactionsPage() {
+// Tarih formatlama
+const formatDate = (dateString) => {
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("tr-TR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+};
+
+// Resim URL'sini düzeltme
+const getImageUrl = (imageUrl) => {
+  if (!imageUrl) return null;
+  if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
+  return imageUrl;
+};
+
+export default function MovementsPage() {
   const [movements, setMovements] = useState([]);
-  const [err, setErr] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    (async () => {
+    const fetchMovements = async () => {
       try {
-        // Assumption: backend exposes /products/movements or /transactions. Try /transactions then fallback.
-        let res;
-        try {
-          res = await api.get("/transactions");
-        } catch (e) {
-          res = await api.get("/products/movements");
-        }
-        setMovements(res.data || []);
-      } catch (e) {
-        console.error(e);
-        setErr("Hareketler yüklenemedi.");
+        const res = await api.get("/reports/movements");
+        setMovements(res.data);
+      } catch (err) {
+        console.error("Hareketler yüklenirken hata:", err);
+        setError("Hareket verileri alınamadı.");
+      } finally {
+        setLoading(false);
       }
-    })();
+    };
+
+    fetchMovements();
   }, []);
 
-  if (err) return <div style={{ color: "#b91c1c", padding: 16 }}>{err}</div>;
+  if (loading) return <div className="p-10 text-center text-gray-500">Yükleniyor...</div>;
+  if (error) return <div className="p-10 text-center text-red-500">{error}</div>;
 
   return (
-    <div style={{ padding: 24 }}>
-      <h2 style={{ marginBottom: 12 }}>Hareketler / Stok Hareketleri</h2>
-      <div style={{ overflowX: "auto" }}>
-        <table className="min-w-full border" style={{ borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: "left", padding: 8 }}>Tarih</th>
-              <th style={{ textAlign: "left", padding: 8 }}>Ürün</th>
-              <th style={{ textAlign: "right", padding: 8 }}>Miktar</th>
-              <th style={{ textAlign: "left", padding: 8 }}>Tür</th>
-              <th style={{ textAlign: "left", padding: 8 }}>Açıklama</th>
-            </tr>
-          </thead>
-          <tbody>
-            {movements.map((m) => (
-              <tr key={m.id || `${m.productId}-${m.date}` }>
-                <td style={{ padding: 8 }}>{new Date(m.date || m.createdAt).toLocaleString()}</td>
-                <td style={{ padding: 8 }}>{m.productName || m.name || m.product?.name}</td>
-                <td style={{ padding: 8, textAlign: "right" }}>{m.change || m.quantity || m.amount}</td>
-                <td style={{ padding: 8 }}>{m.type || (m.change > 0 ? "Giriş" : "Çıkış")}</td>
-                <td style={{ padding: 8 }}>{m.note || m.description || "-"}</td>
+    <div className="page-stack">
+      <section className="page-hero">
+        <div>
+          <p className="eyebrow">Raporlar</p>
+          <h1>Son Hareketler</h1>
+          <p className="muted">Son 1 haftada gerçekleşen tüm stok giriş ve çıkış işlemleri.</p>
+        </div>
+      </section>
+
+      <section className="page-card product-table-card">
+        <div className="table-wrap elevated">
+          <table className="products-table">
+            <thead>
+              <tr>
+                <th>Tarih & Saat</th>
+                <th>Ürün</th>
+                <th>İşlem Türü</th>
+                <th className="text-right">Miktar</th>
+                <th className="text-right">Durum</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {movements.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="empty-state">
+                    Son 7 günde hiç hareket kaydı bulunamadı.
+                  </td>
+                </tr>
+              ) : (
+                movements.map((m) => (
+                  <tr key={m.id}>
+                    <td className="text-sm text-gray-600 font-medium">
+                      {formatDate(m.createdAt)}
+                    </td>
+                    <td>
+                      <div className="product-cell">
+                         <div className="product-thumb">
+                            {getImageUrl(m.product?.imageUrl) ? (
+                                <img 
+                                    src={getImageUrl(m.product.imageUrl)} 
+                                    alt={m.product?.name} 
+                                    className="w-8 h-8 rounded-full object-cover"
+                                />
+                            ) : (
+                                <div className="product-thumb-fallback">
+                                    {m.product?.name?.charAt(0).toUpperCase() || "?"}
+                                </div>
+                            )}
+                         </div>
+                         <span className="product-name">{m.product?.name || "Silinmiş Ürün"}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${
+                        m.type === 'SATIS' ? 'bg-red-100 text-red-700' : 
+                        m.type === 'SATIN_ALMA' ? 'bg-green-100 text-green-700' : 
+                        'bg-blue-100 text-blue-700'
+                      }`}>
+                        {m.type === 'SATIS' ? 'SATIŞ / ÇIKIŞ' : 
+                         m.type === 'SATIN_ALMA' ? 'SATIN ALMA / GİRİŞ' : m.type}
+                      </span>
+                    </td>
+                    <td className={`td-right font-bold ${m.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
+                    </td>
+                    <td className="td-right">
+                        {m.quantity > 0 ? (
+                            <span className="text-green-500">▲ Artış</span>
+                        ) : (
+                            <span className="text-red-500">▼ Azalış</span>
+                        )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }
