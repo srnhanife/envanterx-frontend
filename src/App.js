@@ -2,8 +2,12 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductFormPage from "./pages/ProductFormPage";
-import Navbar from "./components/Navbar";
+import AppShell from "./components/AppShell";
 import ReportsPage from "./pages/ReportsPage";
+import Dashboard from "./pages/Dashboard";
+import TransactionsPage from "./pages/TransactionsPage";
+import "./App.css";
+
 
 
 const Protected = ({children}) => {
@@ -18,16 +22,17 @@ export default function App() {
         <Route path="/login" element={<LoginPage/>} />
         <Route path="/*" element={
           <Protected>
-            <div>
-              <Navbar/>
+            <AppShell>
               <Routes>
                 <Route path="/" element={<Navigate to="/products" />} />
                 <Route path="/products" element={<ProductsPage/>} />
                 <Route path="/products/new" element={<ProductFormPage/>} />
                 <Route path="/products/:id" element={<ProductFormPage/>} />
+                <Route path="/dashboard" element={<Dashboard/>} />
+                <Route path="/transactions" element={<TransactionsPage/>} />
                 <Route path="/reports" element={<ReportsPage />} />
               </Routes>
-            </div>
+            </AppShell>
           </Protected>
         }/>
       </Routes>

@@ -26,24 +26,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-container">
-      <h2>EnvanterX • Giriş</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Kullanıcı adı"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Şifre"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit">Oturum aç</button>
-      </form>
+    <div className="page-center">
+      <div className="card login-card">
+        <h2 className="login-title">EnvanterX</h2>
+        <p className="login-sub">Giriş yaparak devam et</p>
+        <form onSubmit={handleSubmit} className="login-form">
+          <label className="label">Kullanıcı adı</label>
+          <input className="form-control" type="text" placeholder="Kullanıcı adı" value={username} onChange={(e) => setUsername(e.target.value)} />
+          <label className="label">Şifre</label>
+          <input className="form-control" type="password" placeholder="Şifre" value={password} onChange={(e) => setPassword(e.target.value)} />
+          {error && <p className="alert-error">{error}</p>}
+          <div className="login-actions">
+            <button type="submit" className="btn-primary">Oturum aç</button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

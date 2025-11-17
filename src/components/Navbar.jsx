@@ -2,13 +2,14 @@ import { Link } from "react-router-dom";
 
 export default function Navbar() {
   return (
-    <header className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-        <Link to="/" className="text-sm font-semibold text-indigo-700">EnvanterX</Link>
-        <nav className="flex items-center gap-3 text-xs">
-          <Link to="/products" className="text-slate-600 hover:text-slate-900">Ürünler</Link>
-          <Link to="/reports" className="text-slate-600 hover:text-slate-900">Raporlar</Link>
-          <Link to="/reports">Raporlar</Link>
+    <header className="site-header">
+      <div className="container header-inner">
+        <Link to="/" className="brand">EnvanterX</Link>
+        <nav className="site-nav">
+          <Link to="/dashboard" className="nav-link">Dashboard</Link>
+          <Link to="/products" className="nav-link">Ürünler</Link>
+          <Link to="/transactions" className="nav-link">Hareketler</Link>
+          <Link to="/reports" className="nav-link">Raporlar</Link>
         </nav>
       </div>
     </header>

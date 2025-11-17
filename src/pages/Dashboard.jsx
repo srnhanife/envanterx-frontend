@@ -130,7 +130,7 @@ export default function Dashboard() {
   const lowStocks = products.filter(p => p.stockQuantity < p.alertThreshold);
 
   return (
-    <div className="mx-auto max-w-6xl p-5">
+    <div className="page-container">
       {/* Başlık */}
       <div className="mb-5">
         <h1 className="text-xl font-semibold text-slate-900">EnvanterX • Panel</h1>
@@ -138,29 +138,23 @@ export default function Dashboard() {
       </div>
 
       {/* KPI'lar */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid-4 gap-3">
         <Stat label="Toplam Ürün" value={totals.productCount} tone="indigo" />
         <Stat label="Toplam Stok" value={totals.stockCount} tone="emerald" />
-        <Stat
-          label="Toplam Değer"
-          value={totals.stockValue.toLocaleString("tr-TR") + " ₺"}
-          tone="indigo"
-        />
+        <Stat label="Toplam Değer" value={totals.stockValue.toLocaleString("tr-TR") + " ₺"} tone="indigo" />
         <Stat label="Eşik Altı" value={totals.lowStockCount} tone="red" />
       </div>
 
       {/* Sol: Düşük stok, Sağ: Hızlı işlemler + min. grafik kutusu */}
-      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      <div className="mt-4 grid-main">
+        <div className="main-left">
           <LowStock rows={lowStocks} />
         </div>
-        <div className="space-y-4">
+        <div className="main-right">
           <QuickActions />
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="mb-2 text-sm font-semibold text-slate-900">Stok grafiği</div>
-            <div className="grid h-40 place-items-center rounded-lg bg-slate-50 text-slate-400 text-xs">
-              Chart.js için yer tutucu
-            </div>
+          <div className="card">
+            <div className="card-title">Stok grafiği</div>
+            <div className="chart-placeholder">Chart.js için yer tutucu</div>
           </div>
         </div>
       </div>

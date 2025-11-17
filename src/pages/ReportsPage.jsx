@@ -67,16 +67,19 @@ export default function ReportsPage() {
   );
 
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: 20 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>Ürün Raporları</h1>
+    <div className="page-container">
+      <div className="page-header">
+        <h1>Ürün Raporları</h1>
+        <p className="page-sub">Stok ve değer analizleri</p>
+      </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
+      <div className="grid-3 gap-12">
         <KPI label="Toplam Stok" value={totalStock} />
         <KPI label="Toplam Değer" value={totalValue.toLocaleString("tr-TR") + " ₺"} />
         <KPI label="Eşik Altı Ürün" value={lowCount} danger={lowCount > 0} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="grid-2 gap-12 mt-6">
         <Card title="Stok Dağılımı (Doughnut)">
           <Doughnut data={doughnutData} />
         </Card>
