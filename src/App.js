@@ -1,25 +1,36 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import ProductsPage from "./pages/ProductsPage";
+import ProductFormPage from "./pages/ProductFormPage";
+import Navbar from "./components/Navbar";
+import ReportsPage from "./pages/ReportsPage";
 
-function App() {
+
+const Protected = ({children}) => {
+  const ok = !!localStorage.getItem("auth_basic");
+  return ok ? children : <Navigate to="/login" replace />;
+};
+
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage/>} />
+        <Route path="/*" element={
+          <Protected>
+            <div>
+              <Navbar/>
+              <Routes>
+                <Route path="/" element={<Navigate to="/products" />} />
+                <Route path="/products" element={<ProductsPage/>} />
+                <Route path="/products/new" element={<ProductFormPage/>} />
+                <Route path="/products/:id" element={<ProductFormPage/>} />
+                <Route path="/reports" element={<ReportsPage />} />
+              </Routes>
+            </div>
+          </Protected>
+        }/>
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;
