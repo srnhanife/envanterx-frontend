@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api";
-import axios from "axios"; // Axios'u import etmeyi unutmayın
 
 const empty = { name:"", stockQuantity:0, unitCost:0, alertThreshold:0, imageUrl:"" }; 
 // imageUrl'yi state'e ekledik

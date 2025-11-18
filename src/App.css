@@ -234,6 +234,11 @@ a{ color:inherit; }
   color:#475569;
 }
 .btn-ghost{ background:transparent; border-color:#d1d5db; }
+.btn-danger{
+  background:#fee2e2;
+  border-color:#fecaca;
+  color:#b91c1c;
+}
 
 .table-wrap{ overflow-x:auto; }
 .table-wrap.elevated{
@@ -262,7 +267,37 @@ a{ color:inherit; }
 .products-table td.td-right{ text-align:right; }
 .products-table tbody tr:hover td{ background:#f8fbff; }
 .td-actions{ text-align:right; }
-.td-actions .btn{ margin-left:6px; }
+.action-inline{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:8px;
+}
+.action-inline .btn{
+  margin-left:0;
+}
+.confirm-modal{
+  padding:32px;
+  text-align:center;
+}
+.confirm-icon{
+  width:64px;
+  height:64px;
+  margin:0 auto 16px;
+  border-radius:50%;
+  background:#fef2f2;
+  color:#dc2626;
+  font-size:2rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.confirm-body h3{
+  margin:0 0 8px;
+}
+.confirm-body p{
+  margin:0 0 16px;
+}
 
 .product-cell{ display:flex; align-items:center; gap:14px; }
 .product-thumb{

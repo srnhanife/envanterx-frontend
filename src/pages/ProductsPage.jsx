@@ -1,8 +1,23 @@
 // src/pages/ProductsPage.jsx
 import React, { useEffect, useRef, useState } from "react";
 import api from "../api";
-import axios from "axios"; // Axios'u ekledik (Eğer api.js axios kullanıyorsa, sadece api importu yeterli olabilir)
 
+const defaultProductFields = {
+  name: "",
+  unitCost: "",
+  stockQuantity: "",
+  alertThreshold: "",
+  description: "",
+};
+
+const createAddFormState = () => ({
+  ...defaultProductFields,
+  imageFile: null,
+});
+
+const createEditFormState = () => ({
+  ...defaultProductFields,
+});
 
 const getImageUrl = (imageUrl) => {
   if (!imageUrl) return null;
@@ -32,18 +47,16 @@ export default function ProductsPage() {
 
   // modal states
   const [showAdd, setShowAdd] = useState(false);
-  const [addForm, setAddForm] = useState({
-    name: "",
-    unitCost: "",
-    stockQuantity: "",
-    alertThreshold: "",
-    description: "",
-    imageFile: null,
-  });
+  const [addForm, setAddForm] = useState(createAddFormState);
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState("");
 
-  const [stockModal, setStockModal] = useState({ open: false, product: null, type: "increase", amount: 0, note: "" });
+  const [stockModal, setStockModal] = useState({ open: false, product: null, type: "increase", amount: 0 });
+  const [editModal, setEditModal] = useState({ open: false, product: null });
+  const [editForm, setEditForm] = useState(createEditFormState);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [deleteModal, setDeleteModal] = useState({ open: false, product: null, loading: false, error: "" });
 
   const fetchProducts = async () => {
     try {
@@ -73,6 +86,27 @@ export default function ProductsPage() {
   const handleFileChange = (e) => {
     const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
     setAddForm((prev) => ({ ...prev, imageFile: file }));
+  };
+
+  const resetAddForm = () => {
+    setAddForm(createAddFormState());
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const closeAddModal = () => {
+    setShowAdd(false);
+    setAddError("");
+    resetAddForm();
+  };
+
+  const closeEditModal = () => {
+    setEditModal({ open: false, product: null });
+    setEditError("");
+    setEditForm(createEditFormState());
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal({ open: false, product: null, loading: false, error: "" });
   };
 
   // YENİ: İki Aşamalı Kaydetme Mantığı (Modal İçin)
@@ -110,9 +144,7 @@ export default function ProductsPage() {
       await api.post("/products", productData);
 
       // Başarılı
-      setShowAdd(false);
-      setAddForm({ name: "", unitCost: "", stockQuantity: "", alertThreshold: "", description: "", imageFile: null });
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      closeAddModal();
       setAddLoading(false);
       fetchProducts(); // Listeyi yenile
 
@@ -125,7 +157,23 @@ export default function ProductsPage() {
   };
 
   const openStockModal = (product, type) => {
-    setStockModal({ open: true, product, type, amount: 0, note: "" });
+    setStockModal({ open: true, product, type, amount: 0 });
+  };
+
+  const openEditModal = (product) => {
+    setEditModal({ open: true, product });
+    setEditError("");
+    setEditForm({
+      name: product?.name || "",
+      unitCost: product?.unitCost ?? "",
+      stockQuantity: product?.stockQuantity ?? "",
+      alertThreshold: product?.alertThreshold ?? "",
+      description: product?.description || "",
+    });
+  };
+
+  const openDeleteModal = (product) => {
+    setDeleteModal({ open: true, product, loading: false, error: "" });
   };
 
   const submitStockChange = async (e) => {
@@ -133,7 +181,7 @@ export default function ProductsPage() {
      // Eğer Spring Boot endpoint'iniz farklıysa burayı da güncellemeliyiz.
      // Şimdilik mevcut mantığınızı koruyorum.
      e.preventDefault();
-     const { product, type, amount, note } = stockModal;
+     const { product, type, amount } = stockModal;
      if (!product) return;
 
     try {
@@ -147,13 +195,53 @@ export default function ProductsPage() {
 
        await api.post(endpoint, stockRequest);
        
-       setStockModal({ open: false, product: null, type: "increase", amount: 0, note: "" });
+       setStockModal({ open: false, product: null, type: "increase", amount: 0 });
        fetchProducts();
      } catch (e) {
        // ... Hata yönetimi ...
        console.error("Stock change error", e);
        alert("Stok işlemi başarısız.");
      }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editModal.product) return;
+    setEditError("");
+    setEditLoading(true);
+    try {
+      const payload = {
+        name: editForm.name,
+        unitCost: Number(editForm.unitCost) || 0,
+        stockQuantity: Number(editForm.stockQuantity) || 0,
+        alertThreshold: Number(editForm.alertThreshold) || 0,
+        description: editForm.description,
+      };
+
+      await api.put(`/products/${editModal.product.id}`, payload);
+      setEditLoading(false);
+      closeEditModal();
+      fetchProducts();
+    } catch (e) {
+      console.error("Edit product error", e?.response || e);
+      const message = e?.message || "Ürün güncellenemedi.";
+      setEditError(message);
+      setEditLoading(false);
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!deleteModal.product) return;
+    setDeleteModal((prev) => ({ ...prev, loading: true, error: "" }));
+    try {
+      await api.delete(`/products/${deleteModal.product.id}`);
+      closeDeleteModal();
+      fetchProducts();
+    } catch (e) {
+      console.error("Delete product error", e?.response || e);
+      const message = e?.message || "Ürün silinemedi. Lütfen tekrar deneyin.";
+      setDeleteModal((prev) => ({ ...prev, loading: false, error: message }));
+    }
   };
 
   if (err) {
@@ -233,8 +321,12 @@ export default function ProductsPage() {
                     {(p.stockQuantity || 0) * (p.unitCost || 0)}
                   </td>
                   <td className="td-actions">
-                    <button onClick={() => openStockModal(p, "increase")} className="btn">+ Stok</button>
-                    <button onClick={() => openStockModal(p, "decrease")} className="btn btn-ghost">- Stok</button>
+                    <div className="action-inline">
+                      <button onClick={() => openStockModal(p, "increase")} className="btn">+ Stok</button>
+                      <button onClick={() => openStockModal(p, "decrease")} className="btn btn-ghost">- Stok</button>
+                      <button onClick={() => openEditModal(p)} className="btn ghost">Ürünü Güncelle</button>
+                      <button onClick={() => openDeleteModal(p)} className="btn btn-danger">Ürünü Sil</button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -260,7 +352,7 @@ export default function ProductsPage() {
                 <p className="modal-subtitle">Yeni bir ürün oluşturmak için alanları doldurun.</p>
               </div>
               <div>
-                <button onClick={() => setShowAdd(false)} className="btn-close">Kapat ✕</button>
+                <button onClick={closeAddModal} className="btn-close">Kapat ✕</button>
               </div>
             </div>
             <form onSubmit={handleAddSubmit} className="modal-form">
@@ -302,12 +394,119 @@ export default function ProductsPage() {
               </div>
 
               <div className="modal-actions">
-                <button type="button" onClick={() => setShowAdd(false)} className="btn">İptal</button>
+                <button type="button" onClick={closeAddModal} className="btn">İptal</button>
                 <button type="submit" disabled={addLoading} className="btn-primary">
                   {addLoading ? 'Kaydediliyor...' : 'Kaydet'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {editModal.open && (
+        <div className="modal-backdrop">
+          <div className="modal-card modal-card-sm">
+            <div className="modal-header">
+              <div>
+                <h3 className="modal-title">Ürünü Güncelle</h3>
+                <p className="modal-subtitle">{editModal.product?.name}</p>
+              </div>
+              <div>
+                <button onClick={closeEditModal} className="btn-close">Kapat ✕</button>
+              </div>
+            </div>
+            <form onSubmit={handleEditSubmit} className="modal-form">
+              {editError && <div className="alert-error">{editError}</div>}
+              <div className="grid-two">
+                <div className="full-col">
+                  <label className="block text-sm font-medium">Ürün Adı</label>
+                  <input
+                    required
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    className="form-control"
+                    placeholder="Ürün adı"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">Birim Maliyet</label>
+                  <input
+                    inputMode="decimal"
+                    value={editForm.unitCost}
+                    onChange={(e) => setEditForm({ ...editForm, unitCost: e.target.value })}
+                    className="form-control"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">Stok Miktarı</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editForm.stockQuantity}
+                    onChange={(e) => setEditForm({ ...editForm, stockQuantity: e.target.value })}
+                    className="form-control"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">Eşik</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editForm.alertThreshold}
+                    onChange={(e) => setEditForm({ ...editForm, alertThreshold: e.target.value })}
+                    className="form-control"
+                    placeholder="0"
+                  />
+                </div>
+                <div className="full-col">
+                  <label className="block text-sm font-medium">Açıklama</label>
+                  <textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    className="form-control"
+                    placeholder="Ürün açıklaması"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button type="button" onClick={closeEditModal} className="btn">İptal</button>
+                <button type="submit" disabled={editLoading} className="btn-primary">
+                  {editLoading ? "Güncelleniyor..." : "Güncelle"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {deleteModal.open && (
+        <div className="modal-backdrop">
+          <div className="modal-card modal-card-sm confirm-modal">
+            <div className="confirm-icon">⚠</div>
+            <div className="confirm-body">
+              <h3>Ürünü silmek istediğinizden emin misiniz?</h3>
+              <p className="muted">
+                {deleteModal.product?.name} silindiğinde stok hareketleri ve raporlardaki kayıtlar etkilenebilir.
+              </p>
+              {deleteModal.error && <div className="alert-error">{deleteModal.error}</div>}
+            </div>
+            <div className="modal-actions">
+              <button type="button" onClick={closeDeleteModal} className="btn" disabled={deleteModal.loading}>
+                Vazgeç
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteProduct}
+                className="btn btn-danger"
+                disabled={deleteModal.loading}
+              >
+                {deleteModal.loading ? "Siliniyor..." : "Evet, Sil"}
+              </button>
+            </div>
           </div>
         </div>
       )}
