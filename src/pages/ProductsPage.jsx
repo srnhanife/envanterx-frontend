@@ -1,6 +1,7 @@
 // src/pages/ProductsPage.jsx
 import React, { useEffect, useRef, useState } from "react";
 import api from "../api";
+import { composeNoteWithPartner } from "../utils/movementUtils";
 
 const defaultProductFields = {
   name: "",
@@ -17,6 +18,18 @@ const createAddFormState = () => ({
 
 const createEditFormState = () => ({
   ...defaultProductFields,
+});
+
+const createStockModalState = () => ({
+  open: false,
+  product: null,
+  type: "increase",
+});
+
+const createStockFormState = () => ({
+  amount: "",
+  partner: "",
+  note: "",
 });
 
 const getImageUrl = (imageUrl) => {
@@ -47,13 +60,14 @@ export default function ProductsPage() {
 
   // modal states
   const [showAdd, setShowAdd] = useState(false);
-  const [addForm, setAddForm] = useState(createAddFormState);
+  const [addForm, setAddForm] = useState(() => createAddFormState());
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState("");
 
-  const [stockModal, setStockModal] = useState({ open: false, product: null, type: "increase", amount: 0 });
+  const [stockModal, setStockModal] = useState(() => createStockModalState());
+  const [stockForm, setStockForm] = useState(() => createStockFormState());
   const [editModal, setEditModal] = useState({ open: false, product: null });
-  const [editForm, setEditForm] = useState(createEditFormState);
+  const [editForm, setEditForm] = useState(() => createEditFormState());
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState("");
   const [deleteModal, setDeleteModal] = useState({ open: false, product: null, loading: false, error: "" });
@@ -109,6 +123,11 @@ export default function ProductsPage() {
     setDeleteModal({ open: false, product: null, loading: false, error: "" });
   };
 
+  const closeStockModal = () => {
+    setStockModal(createStockModalState());
+    setStockForm(createStockFormState());
+  };
+
   // YENİ: İki Aşamalı Kaydetme Mantığı (Modal İçin)
   const handleAddSubmit = async (e) => {
     e.preventDefault();
@@ -157,7 +176,8 @@ export default function ProductsPage() {
   };
 
   const openStockModal = (product, type) => {
-    setStockModal({ open: true, product, type, amount: 0 });
+    setStockModal({ open: true, product, type });
+    setStockForm(createStockFormState());
   };
 
   const openEditModal = (product) => {
@@ -181,8 +201,19 @@ export default function ProductsPage() {
      // Eğer Spring Boot endpoint'iniz farklıysa burayı da güncellemeliyiz.
      // Şimdilik mevcut mantığınızı koruyorum.
      e.preventDefault();
-     const { product, type, amount } = stockModal;
+     const { product, type } = stockModal;
+     const { amount, partner, note } = stockForm;
      if (!product) return;
+     const numericAmount = Number(amount);
+     if (!numericAmount || numericAmount <= 0) {
+       alert("Lütfen geçerli bir miktar girin.");
+       return;
+     }
+     const trimmedPartner = (partner || "").trim();
+     if (!trimmedPartner) {
+       alert("Lütfen tedarikçi veya müşteri bilgisini girin.");
+       return;
+     }
 
     try {
        
@@ -190,12 +221,14 @@ export default function ProductsPage() {
        const endpoint = type === 'increase' ? '/stock/purchase' : '/stock/sell';
        const stockRequest = {
            productId: product.id,
-           quantity: Number(amount)
+           quantity: numericAmount,
+           counterparty: trimmedPartner,
+           note: composeNoteWithPartner(trimmedPartner, note)
        };
 
        await api.post(endpoint, stockRequest);
        
-       setStockModal({ open: false, product: null, type: "increase", amount: 0 });
+       closeStockModal();
        fetchProducts();
      } catch (e) {
        // ... Hata yönetimi ...
@@ -511,22 +544,69 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* Stock modal - Aynı kalabilir */}
-       {stockModal.open && stockModal.product && (
+      {stockModal.open && stockModal.product && (
         <div className="modal-backdrop">
-           {/* ... Stok modal içeriği ... */}
-             <form onSubmit={submitStockChange} className="modal-card modal-card-sm">
-               {/* ... Form içeriği ... */}
-                <h3 className="modal-title">{stockModal.type === 'increase' ? "Stok Ekle" : "Stok Çıkar"} - {stockModal.product.name}</h3>
-                 <div className="mt-4">
-                  <label className="block text-sm">Miktar</label>
-                  <input required type="number" value={stockModal.amount} onChange={e => setStockModal({...stockModal, amount: e.target.value})} className="form-control" />
-                </div>
-                <div className="modal-actions">
-                   <button type="button" onClick={() => setStockModal({ open: false, product: null, type: 'increase', amount: 0, note: '' })} className="btn">İptal</button>
-                   <button type="submit" className="btn-primary">Kaydet</button>
-                </div>
-             </form>
+          <form onSubmit={submitStockChange} className="modal-card modal-card-sm">
+            <h3 className="modal-title">
+              {stockModal.type === "increase" ? "Stok Ekle" : "Stok Çıkar"} - {stockModal.product.name}
+            </h3>
+            <div className="mt-4">
+              <label className="block text-sm font-medium">Miktar</label>
+              <input
+                required
+                type="number"
+                min="1"
+                value={stockForm.amount}
+                onChange={(e) =>
+                  setStockForm((prev) => ({
+                    ...prev,
+                    amount: e.target.value,
+                  }))
+                }
+                className="form-control full"
+              />
+            </div>
+            <div className="mt-4">
+              <label className="block text-sm font-medium">
+                {stockModal.type === "increase" ? "Tedarikçi / Alım Kaynağı" : "Müşteri / Çıkış Noktası"}
+              </label>
+              <input
+                required
+                value={stockForm.partner}
+                onChange={(e) =>
+                  setStockForm((prev) => ({
+                    ...prev,
+                    partner: e.target.value,
+                  }))
+                }
+                className="form-control full"
+                placeholder={stockModal.type === "increase" ? "Örn. Kara Limited A.Ş." : "Örn. Delta İnşaat"}
+              />
+            </div>
+            <div className="mt-4">
+              <label className="block text-sm font-medium">Not (opsiyonel)</label>
+              <textarea
+                rows={3}
+                value={stockForm.note}
+                onChange={(e) =>
+                  setStockForm((prev) => ({
+                    ...prev,
+                    note: e.target.value,
+                  }))
+                }
+                className="form-control full"
+                placeholder="İrsaliye / sipariş bilgisi gibi açıklamalar ekleyin"
+              />
+            </div>
+            <div className="modal-actions">
+              <button type="button" onClick={closeStockModal} className="btn">
+                İptal
+              </button>
+              <button type="submit" className="btn-primary">
+                Kaydet
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

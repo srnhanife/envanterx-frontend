@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api";
+import { getMovementCounterparty, getMovementNoteBody } from "../utils/movementUtils";
 
 // Tarih formatlama
 const formatDate = (dateString) => {
@@ -19,6 +20,20 @@ const getImageUrl = (imageUrl) => {
   if (!imageUrl) return null;
   if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
   return imageUrl;
+};
+
+const formatSentence = (movement) => {
+  if (!movement) return "";
+  const qty = Math.abs(movement.quantity || 0);
+  const productName = movement.product?.name || "ürün";
+  const verb =
+    movement.type === "SATIS"
+      ? "satıldı"
+      : movement.type === "SATIN_ALMA"
+      ? "teslim alındı"
+      : "işlendi";
+  const target = getMovementCounterparty(movement);
+  return `${target} için ${qty} adet ${productName} ${verb}.`;
 };
 
 export default function MovementsPage() {
@@ -64,6 +79,7 @@ export default function MovementsPage() {
                 <th>Ürün</th>
                 <th>İşlem Türü</th>
                 <th className="text-right">Miktar</th>
+                <th>Karşı Taraf & Not</th>
                 <th className="text-right">Durum</th>
               </tr>
             </thead>
@@ -110,6 +126,15 @@ export default function MovementsPage() {
                     </td>
                     <td className={`td-right font-bold ${m.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
+                    </td>
+                    <td className="movement-desc">
+                      <div className="movement-counterparty">
+                        {getMovementCounterparty(m)}
+                      </div>
+                      <div className="movement-text">{formatSentence(m)}</div>
+                      {getMovementNoteBody(m.note) && (
+                        <div className="movement-note-text">{getMovementNoteBody(m.note)}</div>
+                      )}
                     </td>
                     <td className="td-right">
                         {m.quantity > 0 ? (
