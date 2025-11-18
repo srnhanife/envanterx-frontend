@@ -1,3 +1,5 @@
+import { getStoredMovementPartner, matchPendingPartner, storeMovementPartner } from "./partnerCache";
+
 const NOTE_SEPARATOR = " · ";
 
 const isEmpty = (value) => !value || !value.trim();
@@ -34,7 +36,17 @@ export const getMovementCounterparty = (movement) => {
   if (!movement) return "";
   const fromField = movement.counterparty?.trim();
   if (fromField && !isUnknownLabel(fromField)) {
+    storeMovementPartner(movement.id, fromField);
     return fromField;
+  }
+  const stored = getStoredMovementPartner(movement.id);
+  if (stored) {
+    return stored;
+  }
+  const matched = matchPendingPartner(movement);
+  if (matched?.partner) {
+    storeMovementPartner(movement.id, matched.partner);
+    return matched.partner;
   }
   const fromNote = extractCounterpartyFromNote(movement.note);
   if (fromNote) return fromNote;

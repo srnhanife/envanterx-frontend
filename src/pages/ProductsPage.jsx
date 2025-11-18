@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import api from "../api";
 import { composeNoteWithPartner } from "../utils/movementUtils";
+import { addPendingPartner } from "../utils/partnerCache";
 
 const defaultProductFields = {
   name: "",
@@ -227,6 +228,13 @@ export default function ProductsPage() {
        };
 
        await api.post(endpoint, stockRequest);
+       addPendingPartner({
+         productId: product.id,
+         type: stockModal.type === "increase" ? "SATIN_ALMA" : "SATIS",
+         quantity: numericAmount,
+         partner: trimmedPartner,
+         createdAt: Date.now()
+       });
        
        closeStockModal();
        fetchProducts();
