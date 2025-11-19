@@ -1,5 +1,8 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+
+// Backend Adresi
+const API_BASE_URL = "https://envanterx-backend-production.up.railway.app/api";
 
 const navItems = [
   {
@@ -22,10 +25,48 @@ const navItems = [
 export default function AppShell({ children }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // LocalStorage'dan kullanıcı adını al (Yoksa 'Kullanıcı' yazsın)
+  const username = localStorage.getItem("auth_username") || "Kullanıcı";
+  
+  // Kullanıcı adının baş harflerini al (Örn: Ahmet -> AH)
+  const getInitials = (name) => {
+    return name.substring(0, 2).toUpperCase();
+  };
 
   useEffect(() => {
     setOpen(false);
   }, [location.pathname]);
+
+  // --- ÇIKIŞ FONKSİYONU ---
+  const handleLogout = async () => {
+    if (!window.confirm("Çıkış yapmak istediğinize emin misiniz?")) return;
+
+    const token = localStorage.getItem("auth_basic");
+
+    try {
+      // Backend'e çıkış isteği gönder
+      if (token) {
+        await fetch(`${API_BASE_URL}/auth/logout`, {
+          method: "POST",
+          headers: { 
+            Authorization: token 
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Sunucuya ulaşılamadı, yerel çıkış yapılıyor.");
+    }
+
+    // Tarayıcı hafızasını temizle
+    localStorage.removeItem("auth_basic");
+    localStorage.removeItem("auth_username");
+    localStorage.removeItem("user_role");
+
+    // Login sayfasına yönlendir
+    navigate("/login");
+  };
 
   return (
     <div className={`app-shell ${open ? "shell-menu-open" : ""}`}>
@@ -45,9 +86,34 @@ export default function AppShell({ children }) {
             <div className="page-sub">Genel görünüm · güncel envanter</div>
           </div>
         </div>
-        <div className="topbar-right">
-          <span className="topbar-brand">EnvanterX</span>
-          <div className="user-chip">AB</div>
+        
+        {/* SAĞ TARAFTAKİ GÜNCELLEME: LOGOUT BUTONU */}
+        <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          
+          {/* Kırmızı Çıkış Butonu */}
+          <button 
+            onClick={handleLogout}
+            style={{
+                backgroundColor: '#dc2626', // Kırmızı renk
+                color: 'white',
+                border: 'none',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: 'bold',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+          >
+            ÇIKIŞ YAP
+          </button>
+
+          <span className="topbar-brand" style={{ display: 'none md:block' }}>EnvanterX</span>
+          
+          {/* Dinamik Kullanıcı Harfleri */}
+          <div className="user-chip" title={username}>
+            {getInitials(username)}
+          </div>
         </div>
       </header>
 
@@ -75,6 +141,17 @@ export default function AppShell({ children }) {
             </NavLink>
           ))}
         </nav>
+        
+        {/* Mobilde de çıkış yapabilmek için menünün en altına ek buton (Opsiyonel) */}
+        <div style={{ padding: '20px', borderTop: '1px solid #eee', marginTop: 'auto' }}>
+             <button 
+                onClick={handleLogout}
+                style={{ width: '100%', padding: '10px', border: '1px solid #fee2e2', background: '#fef2f2', color: '#dc2626', borderRadius: '8px', cursor: 'pointer' }}
+             >
+                Oturumu Kapat
+             </button>
+        </div>
+
       </aside>
 
       {open && <div className="menu-backdrop" onClick={() => setOpen(false)} />}
@@ -83,5 +160,3 @@ export default function AppShell({ children }) {
     </div>
   );
 }
-
-
