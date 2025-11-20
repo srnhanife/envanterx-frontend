@@ -105,7 +105,7 @@ export default function AppShell({ children }) {
                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}
           >
-            ÇIKIŞ YAP
+            Oturumu Kapat
           </button>
 
           <span className="topbar-brand" style={{ display: 'none md:block' }}>EnvanterX</span>
@@ -142,15 +142,7 @@ export default function AppShell({ children }) {
           ))}
         </nav>
         
-        {/* Mobilde de çıkış yapabilmek için menünün en altına ek buton (Opsiyonel) */}
-        <div style={{ padding: '20px', borderTop: '1px solid #eee', marginTop: 'auto' }}>
-             <button 
-                onClick={handleLogout}
-                style={{ width: '100%', padding: '10px', border: '1px solid #fee2e2', background: '#fef2f2', color: '#dc2626', borderRadius: '8px', cursor: 'pointer' }}
-             >
-                Oturumu Kapat
-             </button>
-        </div>
+        
 
       </aside>
 
