@@ -73,9 +73,11 @@ export default function ProductsPage() {
   const [editError, setEditError] = useState("");
   const [deleteModal, setDeleteModal] = useState({ open: false, product: null, loading: false, error: "" });
 
-  const fetchProducts = async () => {
+ const fetchProducts = async () => {
     try {
-      const res = await api.get("/products"); // Spring Boot endpoint: /api/products
+      
+      const res = await api.get("https://envanterx-backend-production.up.railway.app/api/products");
+      
       setItems(res.data || []);
     } catch (e) {
       console.error("Products error:", e?.response || e);

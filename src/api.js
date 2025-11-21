@@ -1,13 +1,17 @@
-// src/api.js
+
 import axios from 'axios';
 
+
+
 const api = axios.create({ 
-  baseURL: '/api',
+  
+  baseURL: 'https://envanterx-backend-production.up.railway.app/api',
+  
   headers: {
-    
     'X-Requested-With': 'XMLHttpRequest' 
   }
 });
+
 
 
 api.interceptors.request.use((config) => {
