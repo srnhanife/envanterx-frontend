@@ -56,8 +56,11 @@ const formatErrorMessage = (payload, fallback = "Bir hata oluştu.") => {
 export default function ProductsPage() {
   const [items, setItems] = useState([]);
   const [err, setErr] = useState("");
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(""); // Arama state'i
   const fileInputRef = useRef(null);
+
+  // Role check
+  const isAdmin = localStorage.getItem("user_role") === "ADMIN";
 
   // modal states
   const [showAdd, setShowAdd] = useState(false);
@@ -299,11 +302,25 @@ export default function ProductsPage() {
           <p className="eyebrow">Stoklar</p>
           <h1>Ürünler</h1>
           <p className="muted">Genel görünüm · güncel envanter ve değerleri</p>
+          
+          {/* Arama Kutusu */}
+          <div style={{ marginTop: '10px' }}>
+            <input 
+              type="text" 
+              placeholder="Ürün ara..." 
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              className="form-control"
+              style={{ maxWidth: '300px' }}
+            />
+          </div>
         </div>
         <div className="hero-actions">
-          <button onClick={() => setShowAdd(true)} className="btn-primary lg">
-            + Yeni Ürün
-          </button>
+          {isAdmin && (
+            <button onClick={() => setShowAdd(true)} className="btn-primary lg">
+              + Yeni Ürün
+            </button>
+          )}
         </div>
       </section>
 
@@ -319,7 +336,7 @@ export default function ProductsPage() {
                 <th>Birim</th>
                 <th>Eşik</th>
                 <th>Değer</th>
-                <th>İşlemler</th>
+                {isAdmin && <th>İşlemler</th>}
               </tr>
             </thead>
             <tbody>
@@ -358,19 +375,21 @@ export default function ProductsPage() {
                   <td className="td-right">
                     {(p.stockQuantity || 0) * (p.unitCost || 0)}
                   </td>
-                  <td className="td-actions">
-                    <div className="action-inline">
-                      <button onClick={() => openStockModal(p, "increase")} className="btn">+ Stok</button>
-                      <button onClick={() => openStockModal(p, "decrease")} className="btn btn-ghost">- Stok</button>
-                      <button onClick={() => openEditModal(p)} className="btn ghost">Ürünü Güncelle</button>
-                      <button onClick={() => openDeleteModal(p)} className="btn btn-danger">Ürünü Sil</button>
-                    </div>
-                  </td>
+                  {isAdmin && (
+                    <td className="td-actions">
+                      <div className="action-inline">
+                        <button onClick={() => openStockModal(p, "increase")} className="btn">+ Stok</button>
+                        <button onClick={() => openStockModal(p, "decrease")} className="btn btn-ghost">- Stok</button>
+                        <button onClick={() => openEditModal(p)} className="btn ghost">Ürünü Güncelle</button>
+                        <button onClick={() => openDeleteModal(p)} className="btn btn-danger">Ürünü Sil</button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="empty-state">
+                  <td colSpan={isAdmin ? "6" : "5"} className="empty-state">
                     Hiç ürün bulunamadı.
                   </td>
                 </tr>

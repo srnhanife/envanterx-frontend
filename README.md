@@ -1,70 +1,57 @@
-# Getting Started with Create React App
+# ENVANTERX – STOK YÖNETİM SİSTEMİ
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 1. KURULUM VE ÇALIŞTIRMA ADIMLARI
 
-## Available Scripts
+Projeyi yerel ortamınızda çalıştırmak için aşağıdaki adımları izleyin:
 
-In the project directory, you can run:
+1.  **Gerekli Paketleri Yükleyin:**
+    ```bash
+    npm install
+    ```
 
-### `npm start`
+2.  **Uygulamayı Başlatın:**
+    ```bash
+    npm start
+    ```
+    Uygulama tarayıcınızda otomatik olarak açılacaktır.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 2. KULLANICI GİRİŞ BİLGİLERİ
 
-### `npm test`
+Sistemi test etmek için aşağıdaki kullanıcı bilgilerini kullanabilirsiniz:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+| Rol | Kullanıcı Adı | Şifre | Yetkiler |
+| :--- | :--- | :--- | :--- |
+| **Admin (Yönetici)** | `admin` | `admin123` | Ürün ekleme, silme, güncelleme, stok hareketi yapma, raporları görme. |
+| **User (Kullanıcı)** | `ali` | `ali123` | Sadece ürünleri listeleme ve raporları görüntüleme (Değişiklik yapamaz). |
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 3. API ENDPOINT LİSTESİ
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Backend API dokümantasyonuna (Swagger) aşağıdaki linkten ulaşabilirsiniz:
+👉 **Swagger UI:** [https://envanterx-backend-production.up.railway.app/swagger-ui/index.html](https://envanterx-backend-production.up.railway.app/swagger-ui/index.html)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Sistemin kullandığı temel servisler:
 
-### `npm run eject`
+*   **Base URL:** `https://envanterx-backend-production.up.railway.app/api`
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+| Metot | Endpoint | Açıklama |
+| :--- | :--- | :--- |
+| `POST` | `/auth/login` | Kullanıcı girişi ve token alma |
+| `GET` | `/products` | Tüm ürünleri listeleme |
+| `POST` | `/products` | Yeni ürün oluşturma (Sadece Admin) |
+| `PUT` | `/products/{id}` | Ürün güncelleme (Sadece Admin) |
+| `DELETE` | `/products/{id}` | Ürün silme (Sadece Admin) |
+| `POST` | `/stock/purchase` | Stok artırma / Satın alma işlemi |
+| `POST` | `/stock/sell` | Stok azaltma / Satış işlemi |
+| `GET` | `/reports/total-value` | Toplam stok değerini raporlama |
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 4. CANLI PROJE LİNKİ
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Projenin canlı çalışan versiyonuna aşağıdaki linkten ulaşabilirsiniz:
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+👉 **Frontend Erişim Adresi:** [http://35.205.246.217](http://35.205.246.217)
