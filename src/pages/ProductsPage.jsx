@@ -308,12 +308,7 @@ export default function ProductsPage() {
       </section>
 
       <section className="page-card product-table-card">
-        <div className="products-toolbar">
-            {/* ... (Toolbar kısmı aynı) ... */}
-           <input placeholder="Ara..." value={q} onChange={e => setQ(e.target.value)} className="form-control" />
-           <div className="toolbar-gap" />
-           <button onClick={() => setShowAdd(true)} className="btn ghost">Ürün Ekle</button>
-        </div>
+        
 
         <div className="table-wrap elevated">
           <table className="products-table">
